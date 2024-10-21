@@ -12,7 +12,6 @@ export async function updateAuthButton(token) {
     const userNavbar = document.querySelector('.collapse');
     const userInfo = document.getElementById('user-info');
     const userName = document.getElementById('user-name');
-    const userMenu = document.getElementById('myDropdown');
     const navbarCollapse = new bootstrap.Collapse(userNavbar)
 
     // Скрыть кнопку авторизации и показать информацию о пользователе
@@ -23,7 +22,6 @@ export async function updateAuthButton(token) {
     userName.addEventListener('click', myFunction);
 
     function myFunction() {
-      userMenu.classList.toggle("show");
       navbarCollapse.show()
     }
 

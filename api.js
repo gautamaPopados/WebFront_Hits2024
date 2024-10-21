@@ -60,14 +60,7 @@ export async function getCurrentUser (token) {
     }
 }
 
-export async function registerUser(
-    name,
-    password,
-    email, 
-    birthday, 
-    gender, 
-    phone, 
-    speciality)
+export async function registerUser(jsonData)
     {
     try {
         const response = await fetch(apiUrl + '/doctor/register', {
@@ -75,15 +68,7 @@ export async function registerUser(
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                name,
-                password,
-                email,
-                birthday, 
-                gender, 
-                phone,   
-                speciality 
-            })
+            body: jsonData
         });
 
         const data = await response.json();
@@ -96,7 +81,7 @@ export async function registerUser(
     }
 }
 
-export async function updateUser (name, email, birthday, gender, phone) {
+export async function updateUser (jsonData) {
     const token = localStorage.getItem('token');
     if (!token) return;
 
@@ -107,7 +92,7 @@ export async function updateUser (name, email, birthday, gender, phone) {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + token
             },
-            body: JSON.stringify({name, email, birthday, gender, phone})
+            body: jsonData
         });
 
         return  response;

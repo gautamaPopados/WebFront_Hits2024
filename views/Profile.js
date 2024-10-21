@@ -1,42 +1,56 @@
 import { getCurrentUser , updateUser  } from "../api.js"; // Импортируем необходимые функции
 import AbstractView from "./AbstractView.js";
-import { updateAuthButton } from "../script.js";
+import { validate } from "./Registration.js";
 
 export default class extends AbstractView {
     async getHtml() {
         return `
             <div class="container">
-                <div class="row d-flex justify-content-center">
-                    <form id="profileForm" class="card p-3 w-50 d-flex">
+                <div class="d-flex justify-content-center">
+                    <form id="profileForm" class="card p-3 w-50 shadow p-3" style="background-color: #f6f6fb;">
                         <h1 class="mb-4">Профиль</h1>
-                        <div class="form-control">
-                            <label for="name">ФИО</label>
-                            <input type="text" id="name" required>
+                        <div class="row mb-3">
+                            <div class="form-group ">
+                                <label style="color: #8a8aa7;" for="name">ФИО</label>
+                                <input type="text" class="form-control" id="name" required>
+                            </div>
                         </div>
-                        <div class="input-group small">
-                            <label for="gender">Пол</label>
-                            <select id="gender">
-                                <option value="Мужской">Мужской</option>
-                                <option value="Женский">Женский</option>
-                            </select>
+                        </form-row>
+                        <div class="row mb-3">
+                            <div class="form-group col">
+                                <label style="color: #8a8aa7;" for="gender">Пол</label>
+                                <select class="form-select" id="gender" aria-label="Select gender">
+                                    <option value="Мужской">Мужской</option>
+                                    <option value="Женский">Женский</option>
+                                </select>
+                            </div>
+                            <div class="form-group col">
+                                <label style="color: #8a8aa7;" for="dob">Дата рождения</label>
+                                <input class="form-control" type="date" id="dob" required>
+                            </div>
                         </div>
-                        <div class="input-group small">
-                            <label for="dob">Дата рождения</label>
-                            <input type="date" id="dob" required>
+                        <div class="row mb-3">
+                            <div class="form-group col">
+                                <label style="color: #8a8aa7;" for="phone">Телефон</label>
+                                <input class="form-control" type="text" id="phone" placeholder="+7 (999) 999-99-99" required>
+                            </div>
                         </div>
-                        <div class="input-group">
-                            <label for="phone">Телефон</label>
-                            <input type="tel" id="phone" placeholder="+7 (999) 999-99-99" required>
+                        <div class="row mb-3">
+                            <div class="form-group col">
+                                <label style="color: #8a8aa7;" for="email">Email</label>
+                                <input class="form-control" type="email" id="email" required>
+                            </div>
                         </div>
-                        <div class="input-group">
-                            <label for="email">Email</label>
-                            <input type="email" id="email" required>
+                        <div class="row">
+                            <div class="col link-underline-opacity-0 justify-content-around d-flex flex-column">
+                                <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                            </div>
                         </div>
-                        <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                        <div class="text-center mt-2" id="profileMessage"></div>
                     </form>
                 </div>
                 
-                <div id="profileMessage"></div>
+                
             </div>
         `;
     }
@@ -45,6 +59,7 @@ export default class extends AbstractView {
         console.log("ProfileView script executed.");
         const profileForm = document.getElementById('profileForm');
         const profileMessage = document.getElementById('profileMessage');
+        profileMessage.style.color = 'red';
 
         try {
             const token = localStorage.getItem('token');
@@ -62,36 +77,31 @@ export default class extends AbstractView {
 
         profileForm.addEventListener('submit', async function (e) {
             e.preventDefault();
-            const phone = profileForm.phone.value;
-            const phoneRegex = /^\+7\d{10}$/;
 
-            if (!phoneRegex.test(phone)) {
-                profileMessage.textContent = 'Неправильный формат номера телефона. Пожалуйста, используйте формат +7XXXXXXXXXX.';
-                profileMessage.style.color = 'red';
+            const data = {
+                name:  profileForm.name.value,
+                email: profileForm.email.value,
+                birthday: new Date(profileForm.dob.value).toISOString(),
+                gender: profileForm.gender.value === "Мужской" ? "Male" : "Female",
+                phone: profileForm.phone.value
+            }
+
+            const jsonData = JSON.stringify(data)
+
+            const [message, valid] = validate(data);
+
+            if(!valid) {
+                profileMessage.textContent = message;
                 return;
             }
 
             try {
-                const result = await updateUser (
-                    profileForm.name.value,
-                    profileForm.email.value,
-                    new Date(profileForm.dob.value).toISOString(),
-                    profileForm.gender.value === "Мужской" ? "Male" : "Female",
-                    profileForm.phone.value
-                );
+                const result = await updateUser (jsonData);
 
                 if (result.status === 200) {
                     profileMessage.textContent = "Данные успешно обновлены.";
                     profileMessage.style.color = 'green';
-                } else {
-                    const errors = result.data.errors;
-                    const errorMessages = Object.keys(errors).map(key => {
-                        return `${key}: ${errors[key].join(', ')}`;
-                    }).join('\n');
-
-                    profileMessage.textContent = errorMessages;
-                    profileMessage.style.color = 'red';
-                }
+                } 
             } catch (error) {
                 console.error('Ошибка при обновлении данных:', error);
                 profileMessage.textContent = "Произошла ошибка при обновлении данных.";
