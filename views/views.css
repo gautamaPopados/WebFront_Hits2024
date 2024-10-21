@@ -1,0 +1,159 @@
+.login-box {
+    width: 400px;
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.register-box, .profile-box{
+    background-color: #fff;
+    width: 400px;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+#registerForm, #profileForm {
+    display: flex;
+    width: 360px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+h1 {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.input-group {
+    width: 100%;
+    display: grid;
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+.small {
+    width: 160px;
+}
+
+input, select {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.btn {
+    padding: 10px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 10px;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    color: white;
+}
+
+.btn-secondary {
+    background-color: #e0e0e0;
+    color: #555;
+}
+
+.filters {
+    background-color: #f1f1f1;
+    padding: 20px;
+    border-radius: 8px;
+
+}
+
+.row {
+    display: flex;
+    margin-bottom: 10px;
+    align-items: center;
+}
+
+.col {
+
+    flex: 1;
+    margin-right: 10px;
+    font-size: small;
+}
+
+.col:last-child {
+    margin-right: 0;
+}
+
+.patients-list {
+    margin-top: 20px;
+}
+
+.patient-card {
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+}
+
+.patient-card p {
+    margin: 0;
+    font-size: 14px;
+}
+
+/* Пагинация */
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.pagination button {
+    background-color: white;
+    border: 1px solid #ddd;
+    padding: 10px 15px;
+    margin: 0 5px;
+    cursor: pointer;
+}
+
+.pagination button:hover {
+    background-color: #007bff;
+    color: white;
+}
+
+.topper {
+    display: flex;
+    justify-content: space-between;
+}
+
+.form-check {
+}
+
+.form-check-input {
+    width: auto;
+    padding: 10px;
+}
+
+.form-check-label {
+    text-align: center;
+    color: #000000;
+    font-size: normal;
+}
+
+label {
+    color: #555;
+    font-size: small;
+}
+
+.main-content {
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 20px;
+    width: 70%;
+}
