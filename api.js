@@ -111,3 +111,22 @@ export async function loadSpecialties() {
     const data = await response.json();
     return data.specialties;
 }
+
+export async function loadPatients(queryParams) {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    
+    const response = await fetch(apiUrl + `/patient?${queryParams.toString()}`, {
+        method: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        }
+    }
+);
+    if (!response.ok) {
+        throw new Error('Ошибка при загрузке пациентов');
+    }
+    const data = await response.json();
+    return [data.patients, data.pagination];
+}
+
