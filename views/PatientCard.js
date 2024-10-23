@@ -1,21 +1,13 @@
 import AbstractView from "./AbstractView.js";
-import { getPatients, registerPatient } from "../api.js";
+import { getPatientById, getPatientInspections, getPatients, getRootsICD, registerPatient } from "../api.js";
 import { validate } from "./Registration.js";
 
 export default class extends AbstractView {
-    constructor() {
+    constructor(params) {
         super();
-        this.params = new URLSearchParams(window.location.search);
-        this.currentState = {
-            page: this.params.get('page') || 1,
-            size: this.params.get('size') || 4,
-            name: this.params.get('name') || '',
-            conclusions: this.params.get('conclusions')?.split(',') || [],
-            sorting: this.params.get('sorting') || '',
-            scheduledVisits: this.params.get('scheduledVisits') === 'true',
-            onlyMine: this.params.get('onlyMine') === 'true'
-        };
+        this.params = params;
     }
+
     async getHtml() {
         return `
 
@@ -26,67 +18,48 @@ export default class extends AbstractView {
                         
                         <div class="row justify-content-between align-items-end">
                             
-                            <div class="col">
-                                <h1 class="mb-4">Пациенты</h1>
+                            <div class="col-8">
+                                <h1 class="mb-4">Медицинская карта пациента</h1>
                             </div>
         
-                            <div class="col">
+                            <div class="col-4">
                                 <div class=" d-flex flex-column mb-4 align-items-end">                            
-                                    <button type="button" class="btn btn-primary w-50" data-bs-toggle="modal" data-bs-target="#newPatientModal">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-fill-add" viewBox="0 0 16 16">
-                                            <path d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7m.5-5v1h1a.5.5 0 0 1 0 1h-1v1a.5.5 0 0 1-1 0v-1h-1a.5.5 0 0 1 0-1h1v-1a.5.5 0 0 1 1 0m-2-6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
-                                            <path d="M2 13c0 1 1 1 1 1h5.256A4.5 4.5 0 0 1 8 12.5a4.5 4.5 0 0 1 1.544-3.393Q8.844 9.002 8 9c-5 0-6 3-6 4"/>
-                                        </svg> 
-                                        Добавить пациента
+                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newPatientModal">
+                                        Добавить осмотр
                                     </button>
                                 </div>  
                             </div>
                         </div>
-                        <div class="row">
-                            <h4>Фильтры и сортировка</h4>
+                        <div class="row justify-content-between align-items-end mb-3">
+                            <div class="col">
+                                <h4 id="patientName">
+                                </h4>   
+                            </div>
+
+                            <div class="col">
+                                <p class="text-end" id="patientBirthday"></p>
+                            </div>
                         </div>
 
-                        <div class="row mb-3">
+                        <div class="row mb-3 align-items-end">
                             <div class="col">
-                                <label for="name" class="form-label text-muted">Имя</label>
-                                <input type="text" class="form-control" id="name" placeholder="Имя Иван Иванович">
-                            </div>
-                            <div class="col">
-                                <label for="conclusions" class="form-label text-muted">Информация заключения</label>
-                                <select class="form-control selectpicker" multiple id="conclusions">
-                                    <option value="Disease">Болезнь</option>
-                                    <option value="Recovery">Восстановление</option>
-                                    <option value="Death">Смерть</option>
+                                <label for="roots" class="form-label text-muted">МКБ-10</label>
+                                <select class="form-control selectpicker" multiple id="roots" data-live-search="true" data-size="5">
                                 </select>
                             </div>
-                        </div>
-                        <div class="row mb-3 align-items-center">    
-                            <div class="col">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="scheduledVisits">
-                                    <label class="form-check-label" for="scheduledVisits">
-                                        Есть авторизованные визиты
+                            <div class="col form-group">
+                                <div class="form-check">
+                                    <input class="form-check-input" name="group" type="radio" id="groupByChainRadio">
+                                    <label class="form-check-label" for="groupByChainRadio">
+                                        Сгруппировать по повторным
                                     </label>
                                 </div>
-                            </div>
-                            <div class="form-group col">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="onlyMine">
-                                    <label class="form-check-label" for="onlyMine">
-                                        Мои пациенты
+                                <div class="form-check">
+                                    <input class="form-check-input" name="group" type="radio" id="showAllRadio" checked>
+                                    <label class="form-check-label" for="showAllRadio">
+                                        Показать все
                                     </label>
                                 </div>
-                            </div>
-                            <div class="form-group col">
-                                <label for="sorting" class="form-label ">Сортировка пациентов</label>
-                                <select class="form-select" id="sorting">
-                                    <option value="NameAsc" selected>По имени (А-Я)</option>
-                                    <option value="NameDesc">По имени (Я-А)</option>
-                                    <option value="CreateAsc">По дате создания (старые-новые)</option>
-                                    <option value="CreateDesc">По дате создания (новые-старые)</option>
-                                    <option value="InspectionAsc">По числу осмотров (возрастание)</option>
-                                    <option value="InspectionDesc">По числу осмотров (убывание)</option>
-                                </select>
                             </div>
                         </div>
                         <div class="row justify-content-between align-items-end">
@@ -147,6 +120,126 @@ export default class extends AbstractView {
                 </div>
             </div>
         `;
+    }
+
+    async executeViewScript() {
+        const self = this;
+        const form = document.getElementById('sortForm');
+        const newPatientModal = new bootstrap.Modal(document.getElementById('newPatientModal'));
+        const patientName = document.getElementById('patientName');
+        const rootsSelect = document.getElementById('roots');
+        
+        // form.name.value = this.currentState.name;
+        // form.conclusions.value = this.currentState.conclusions;
+        // form.scheduledVisits.checked = this.currentState.scheduledVisits;
+        // form.onlyMine.checked = this.currentState.onlyMine;
+        // form.sorting.value = this.currentState.sorting;
+        // form.numPatients.value = this.currentState.size;
+        
+        const registerMessage = document.getElementById('registerMessage');
+        registerMessage.style.color = 'red';
+
+        try {
+            const patient = await getPatientById(this.params.id);
+            const dob = new Date(patient.birthday);
+            document.getElementById('patientName').innerHTML = `
+                ${patient.name}
+                ${this.getGenderIcon(patient.gender)}
+            `
+            document.getElementById('patientBirthday').textContent = "Дата рождения: " + dob.getDay().toString()  + "." + dob.getMonth().toString() + "." + dob.getFullYear().toString();
+            // document.getElementById('phone').value = patient.phone;
+            // document.getElementById('email').value = patient.email;
+
+        } catch (error) {
+            console.error('Ошибка при загрузке данных пользователя:', error);
+        }
+
+        try {
+            const roots = await getRootsICD();
+
+            roots.forEach(root => {
+                const option = document.createElement('option');
+                option.setAttribute("data-tokens", root.code)
+                option.setAttribute("class", "icd-option")
+                option.value = root.id;
+                option.textContent = root.name;
+                console.log(rootsSelect.appendChild(option));
+            });
+            $('.selectpicker').selectpicker('refresh');
+
+        } catch (error) {
+            console.error('Ошибка загрузки roots:', error);
+        }
+
+        // form.addEventListener('submit', async (e) => {
+        //     e.preventDefault();
+            
+        //     this.currentState = {
+        //         page: 1, 
+        //         size: form.numPatients.value,
+        //         name: form.name.value,
+        //         conclusions: Array.from(form.conclusions.selectedOptions).map(opt => opt.value),
+        //         sorting: form.sorting.value,
+        //         scheduledVisits: form.scheduledVisits.checked,
+        //         onlyMine: form.onlyMine.checked
+        //     };
+
+        //     this.updateURL();
+        //     await this.loadPatients();
+        // });
+
+        // await this.loadPatients();
+
+        // const saveNewPatientButton = document.getElementById("saveNewPatient");
+
+        // saveNewPatientButton.addEventListener("click", async function(event) {
+        //     event.preventDefault();
+        //     const name = document.getElementById("patientName").value;
+        //     const birthday = document.getElementById("patientBirthday").value;
+        //     const gender = document.getElementById("patientGender").value;
+        //     const data = {
+        //         name: name,
+        //         birthday: birthday,
+        //         gender: gender
+        //     };
+
+        //     const [message, valid] = validate(data);
+
+        //     if(!valid) {
+        //         registerMessage.textContent = message;
+        //         return;
+        //     }
+
+        //     try {
+        //         const result = await registerPatient(JSON.stringify(data));
+
+        //         if (result.status === 200) {     
+        //             console.log(`Регистрация нового пациента: ${name}, ${gender}, ${birthday}`);
+                    
+        //             registerMessage.style.color = 'green';
+        //             registerMessage.textContent = "Успешно";
+
+        //             newPatientModal.hide();
+                
+        //             document.getElementById("newPatientForm").reset();
+                    
+        //             await self.loadPatients();
+        //         } 
+        //     } catch (error) {
+        //         console.error('Ошибка при регистрации пациента:', error);
+                
+        //         registerMessage.style.color = 'red';
+        //         registerMessage.textContent = "Произошла ошибка при регистрации.";
+        //     }
+
+
+        // });
+    }
+
+    getGenderIcon(gender) {
+        return gender === 'Male' 
+            ? '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-gender-male" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M9.5 2a.5.5 0 0 1 0-1h5a.5.5 0 0 1 .5.5v5a.5.5 0 0 1-1 0V2.707L9.871 6.836a5 5 0 1 1-.707-.707L13.293 2zM6 6a4 4 0 1 0 0 8 4 4 0 0 0 0-8"/></svg>'
+            : '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-gender-female" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 1a4 4 0 1 0 0 8 4 4 0 0 0 0-8M3 5a5 5 0 1 1 5.5 4.975V12h2a.5.5 0 0 1 0 1h-2v2.5a.5.5 0 0 1-1 0V13h-2a.5.5 0 0 1 0-1h2V9.975A5 5 0 0 1 3 5"/></svg>';
     }
 
     async loadPatients() {
@@ -277,85 +370,7 @@ export default class extends AbstractView {
         window.history.pushState({}, '', newURL);
     }
 
-    async executeViewScript() {
-        const self = this;
-        const form = document.getElementById('sortForm');
-        const newPatientModal = new bootstrap.Modal(document.getElementById('newPatientModal'));
-        
-        form.name.value = this.currentState.name;
-        form.conclusions.value = this.currentState.conclusions;
-        form.scheduledVisits.checked = this.currentState.scheduledVisits;
-        form.onlyMine.checked = this.currentState.onlyMine;
-        form.sorting.value = this.currentState.sorting;
-        form.numPatients.value = this.currentState.size;
-        
-        const registerMessage = document.getElementById('registerMessage');
-        registerMessage.style.color = 'red';
-
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            this.currentState = {
-                page: 1, 
-                size: form.numPatients.value,
-                name: form.name.value,
-                conclusions: Array.from(form.conclusions.selectedOptions).map(opt => opt.value),
-                sorting: form.sorting.value,
-                scheduledVisits: form.scheduledVisits.checked,
-                onlyMine: form.onlyMine.checked
-            };
-
-            this.updateURL();
-            await this.loadPatients();
-        });
-
-        await this.loadPatients();
-
-        const saveNewPatientButton = document.getElementById("saveNewPatient");
-
-        saveNewPatientButton.addEventListener("click", async function(event) {
-            event.preventDefault();
-            const name = document.getElementById("patientName").value;
-            const birthday = document.getElementById("patientBirthday").value;
-            const gender = document.getElementById("patientGender").value;
-            const data = {
-                name: name,
-                birthday: birthday,
-                gender: gender
-            };
-
-            const [message, valid] = validate(data);
-
-            if(!valid) {
-                registerMessage.textContent = message;
-                return;
-            }
-
-            try {
-                const result = await registerPatient(JSON.stringify(data));
-
-                if (result.status === 200) {     
-                    console.log(`Регистрация нового пациента: ${name}, ${gender}, ${birthday}`);
-                    
-                    registerMessage.style.color = 'green';
-                    registerMessage.textContent = "Успешно";
-
-                    newPatientModal.hide();
-                
-                    document.getElementById("newPatientForm").reset();
-                    
-                    await self.loadPatients();
-                } 
-            } catch (error) {
-                console.error('Ошибка при регистрации пациента:', error);
-                
-                registerMessage.style.color = 'red';
-                registerMessage.textContent = "Произошла ошибка при регистрации.";
-            }
-
-
-        });
-    }
+    
 }    
 
 function buildQueryString(params) {

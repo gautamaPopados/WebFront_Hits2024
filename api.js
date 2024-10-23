@@ -1,6 +1,7 @@
 const apiUrl = 'https://mis-api.kreosoft.space/api';
 
 export async function loginUser(email, password) {
+
     try {
         const response = await fetch(apiUrl + '/doctor/login', {
             method: 'POST',
@@ -21,6 +22,7 @@ export async function loginUser(email, password) {
 }
 
 export async function logoutUser (token) {
+
     try {
         const response = await fetch(apiUrl + '/doctor/logout', {
             method: 'POST',
@@ -40,6 +42,7 @@ export async function logoutUser (token) {
 
 
 export async function getCurrentUser (token) {
+
     if (!token)
         return;
 
@@ -60,8 +63,8 @@ export async function getCurrentUser (token) {
     }
 }
 
-export async function registerUser(jsonData)
-    {
+export async function registerUser(jsonData){
+
     try {
         const response = await fetch(apiUrl + '/doctor/register', {
             method: 'POST',
@@ -82,6 +85,7 @@ export async function registerUser(jsonData)
 }
 
 export async function updateUser (jsonData) {
+
     const token = localStorage.getItem('token');
     if (!token) return;
 
@@ -104,6 +108,7 @@ export async function updateUser (jsonData) {
 }
 
 export async function loadSpecialties() {
+
     const response = await fetch(apiUrl + '/dictionary/speciality');
     if (!response.ok) {
         throw new Error('Ошибка при загрузке специализаций');
@@ -112,7 +117,18 @@ export async function loadSpecialties() {
     return data.specialties;
 }
 
-export async function loadPatients(queryParams) {
+export async function getRootsICD() {
+
+    const response = await fetch(apiUrl + '/dictionary/icd10/roots');
+    if (!response.ok) {
+        throw new Error('Ошибка при загрузке корневых кодов');
+    }
+    const data = await response.json();
+    return data;
+}
+
+export async function getPatients(queryParams) {
+
     const token = localStorage.getItem('token');
     if (!token) return;
     
@@ -130,3 +146,61 @@ export async function loadPatients(queryParams) {
     return [data.patients, data.pagination];
 }
 
+export async function registerPatient(jsonData){
+
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+        const response = await fetch(apiUrl + '/patient/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: jsonData
+        });
+
+        const data = await response.json();
+
+        return { status: response.status, data: data };
+
+    } catch (error) {
+        console.error('Error in register API:', error);
+        throw error; 
+    }
+}
+
+export async function getPatientById(id) {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const response = await fetch(`${apiUrl}/patient/${id}`, {
+        method: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        }
+    });
+    
+    if (!response.ok) {
+        throw new Error('Ошибка при получении данных пациента');
+    }
+    return await response.json();
+}
+
+export async function getPatientInspections(id) {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const response = await fetch(`${apiUrl}/patient/${id}/inspections`, {
+        method: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        }
+    });
+    
+    if (!response.ok) {
+        throw new Error('Ошибка при получении осмотров пациента');
+    }
+    return await response.json();
+}

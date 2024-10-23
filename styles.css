@@ -1,4 +1,4 @@
-* {
+/* * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -133,4 +133,14 @@ background-color: #3d8ec4;
 .header .text {
     font-size: 14px;
     text-align: center;
+}
+ */
+
+.bootstrap-select .dropdown-menu{
+    max-width: 100%!important;
+ }
+
+ .icd-option {
+    max-width: 200px!important;
+    text-overflow: ellipsis;
 }

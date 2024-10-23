@@ -50,7 +50,6 @@ export default class extends AbstractView {
                     </form>
                 </div>
                 
-                
             </div>
         `;
     }

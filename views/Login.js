@@ -49,12 +49,12 @@ export default class extends AbstractView {
         loginForm.addEventListener('submit', async function (event) {
             
             event.preventDefault(); 
-            var valid = true;
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
 
             try {
                 const result = await loginUser(email, password);
+                
                 if (result.status === 200) {
                     loginMessage.textContent = "Успешно";
                     loginMessage.style.color = 'green';

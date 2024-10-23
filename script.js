@@ -14,7 +14,6 @@ export async function updateAuthButton(token) {
     const userName = document.getElementById('user-name');
     const navbarCollapse = new bootstrap.Collapse(userNavbar)
 
-    // Скрыть кнопку авторизации и показать информацию о пользователе
     authButton.style.display = 'none';
     userInfo.style.display = 'block';
     userName.textContent = user.name;
@@ -46,17 +45,16 @@ const logout = async (event) => {
 
     const token = localStorage.getItem('token');
     if (!token) {
-        return; // Если токена нет, просто выходим
+        return; 
     }
     try {
 
         const result = await logoutUser(token);
         if (result.status === 200 || result.status === 204) {
-            // Успешный выход
-            localStorage.removeItem('token'); // Удаляем токен из localStorage
+            localStorage.removeItem('token'); 
             console.log('Токен удален');
-            updateAuthButton(null); // Обновляем интерфейс
-            window.location.href = '/login'; // Перенаправляем пользователя на страницу входа
+            updateAuthButton(null); 
+            window.location.href = '/login';
             console.log('Выход выполнен успешно');
         } else {
             console.error('Ошибка при выходе:', result.status);
