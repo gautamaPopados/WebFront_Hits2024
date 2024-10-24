@@ -5,7 +5,14 @@ import { validate } from "./Registration.js";
 export default class extends AbstractView {
     constructor(params) {
         super();
-        this.params = params;
+        const id = params.id;
+        this.params = new URLSearchParams(window.location.search);
+        this.currentState = {
+            id: id,
+            page: this.params.get('page') || 1,
+            size: this.params.get('size') || 4,
+            roots: this.params.get('icdRoots')?.split(',') || []
+        };
     }
 
     async getHtml() {
@@ -49,13 +56,13 @@ export default class extends AbstractView {
                             </div>
                             <div class="col form-group">
                                 <div class="form-check">
-                                    <input class="form-check-input" name="group" type="radio" id="groupByChainRadio">
+                                    <input class="form-check-input" name="group" type="radio" id="groupByChainRadio" value=true>
                                     <label class="form-check-label" for="groupByChainRadio">
                                         Сгруппировать по повторным
                                     </label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" name="group" type="radio" id="showAllRadio" checked>
+                                    <input class="form-check-input" name="group" type="radio" id="showAllRadio" value=false checked>
                                     <label class="form-check-label" for="showAllRadio">
                                         Показать все
                                     </label>
@@ -64,8 +71,8 @@ export default class extends AbstractView {
                         </div>
                         <div class="row justify-content-between align-items-end">
                                 <div class="form-group col-4">
-                                    <label for="numPatients" class="form-label ">Число пациентов на странице</label>
-                                    <select class="form-select" id="numPatients">
+                                    <label for="size" class="form-label ">Число пациентов на странице</label>
+                                    <select class="form-select" id="size">
                                         <option selected>4</option>
                                         <option>6</option>
                                     </select>
@@ -84,71 +91,21 @@ export default class extends AbstractView {
                     
                 </div>
             </div>
-
-            <div class="modal fade" id="newPatientModal" tabindex="-1" aria-labelledby="newPatientModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="newPatientModalLabel">Регистрация нового пациента</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <form id="newPatientForm">
-                                <div class="mb-3">
-                                    <label for="patientName" class="form-label">ФИО</label>
-                                    <input type="text" class="form-control" id="patientName" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="patientGender" class="form-label">Пол</label>
-                                    <select class="form-select" id="patientGender" required>
-                                        <option value="Male">Мужской</option>
-                                        <option value="Female">Женский</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="patientBirthday" class="form-label">Дата рождения</label>
-                                    <input type="date" class="form-control" id="patientBirthday" required>
-                                </div>
-                            </form>
-                        </div>
-                        <div class="modal-footer">
-                            <div class="text-center mt-2" id="registerMessage"></div>
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                            <button type="button" class="btn btn-primary" id="saveNewPatient">Сохранить</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
         `;
     }
 
     async executeViewScript() {
-        const self = this;
         const form = document.getElementById('sortForm');
-        const newPatientModal = new bootstrap.Modal(document.getElementById('newPatientModal'));
-        const patientName = document.getElementById('patientName');
         const rootsSelect = document.getElementById('roots');
-        
-        // form.name.value = this.currentState.name;
-        // form.conclusions.value = this.currentState.conclusions;
-        // form.scheduledVisits.checked = this.currentState.scheduledVisits;
-        // form.onlyMine.checked = this.currentState.onlyMine;
-        // form.sorting.value = this.currentState.sorting;
-        // form.numPatients.value = this.currentState.size;
-        
-        const registerMessage = document.getElementById('registerMessage');
-        registerMessage.style.color = 'red';
 
         try {
-            const patient = await getPatientById(this.params.id);
+            const patient = await getPatientById(this.currentState.id);
             const dob = new Date(patient.birthday);
             document.getElementById('patientName').innerHTML = `
                 ${patient.name}
                 ${this.getGenderIcon(patient.gender)}
             `
             document.getElementById('patientBirthday').textContent = "Дата рождения: " + dob.getDay().toString()  + "." + dob.getMonth().toString() + "." + dob.getFullYear().toString();
-            // document.getElementById('phone').value = patient.phone;
-            // document.getElementById('email').value = patient.email;
 
         } catch (error) {
             console.error('Ошибка при загрузке данных пользователя:', error);
@@ -163,77 +120,29 @@ export default class extends AbstractView {
                 option.setAttribute("class", "icd-option")
                 option.value = root.id;
                 option.textContent = root.name;
-                console.log(rootsSelect.appendChild(option));
+                rootsSelect.appendChild(option);
             });
             $('.selectpicker').selectpicker('refresh');
-
         } catch (error) {
             console.error('Ошибка загрузки roots:', error);
         }
 
-        // form.addEventListener('submit', async (e) => {
-        //     e.preventDefault();
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
             
-        //     this.currentState = {
-        //         page: 1, 
-        //         size: form.numPatients.value,
-        //         name: form.name.value,
-        //         conclusions: Array.from(form.conclusions.selectedOptions).map(opt => opt.value),
-        //         sorting: form.sorting.value,
-        //         scheduledVisits: form.scheduledVisits.checked,
-        //         onlyMine: form.onlyMine.checked
-        //     };
+            this.currentState = {
+                id: this.currentState.id,
+                page: 1, 
+                size: form.size.value,
+                grouped: $('input[name=group]:checked').val(),
+                roots: Array.from(form.roots.selectedOptions).map(opt => opt.value)
+            };
 
-        //     this.updateURL();
-        //     await this.loadPatients();
-        // });
+            this.updateURL();
+            await this.loadInspections();
+        });
 
-        // await this.loadPatients();
-
-        // const saveNewPatientButton = document.getElementById("saveNewPatient");
-
-        // saveNewPatientButton.addEventListener("click", async function(event) {
-        //     event.preventDefault();
-        //     const name = document.getElementById("patientName").value;
-        //     const birthday = document.getElementById("patientBirthday").value;
-        //     const gender = document.getElementById("patientGender").value;
-        //     const data = {
-        //         name: name,
-        //         birthday: birthday,
-        //         gender: gender
-        //     };
-
-        //     const [message, valid] = validate(data);
-
-        //     if(!valid) {
-        //         registerMessage.textContent = message;
-        //         return;
-        //     }
-
-        //     try {
-        //         const result = await registerPatient(JSON.stringify(data));
-
-        //         if (result.status === 200) {     
-        //             console.log(`Регистрация нового пациента: ${name}, ${gender}, ${birthday}`);
-                    
-        //             registerMessage.style.color = 'green';
-        //             registerMessage.textContent = "Успешно";
-
-        //             newPatientModal.hide();
-                
-        //             document.getElementById("newPatientForm").reset();
-                    
-        //             await self.loadPatients();
-        //         } 
-        //     } catch (error) {
-        //         console.error('Ошибка при регистрации пациента:', error);
-                
-        //         registerMessage.style.color = 'red';
-        //         registerMessage.textContent = "Произошла ошибка при регистрации.";
-        //     }
-
-
-        // });
+        await this.loadInspections();
     }
 
     getGenderIcon(gender) {
@@ -242,36 +151,36 @@ export default class extends AbstractView {
             : '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-gender-female" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 1a4 4 0 1 0 0 8 4 4 0 0 0 0-8M3 5a5 5 0 1 1 5.5 4.975V12h2a.5.5 0 0 1 0 1h-2v2.5a.5.5 0 0 1-1 0V13h-2a.5.5 0 0 1 0-1h2V9.975A5 5 0 0 1 3 5"/></svg>';
     }
 
-    async loadPatients() {
+    async loadInspections() {
         const queryString = buildQueryString(this.currentState);
-        const [patients, pagination] = await getPatients(queryString);
-        this.updatePatientsList(patients);
+        const [inspections, pagination] = await getPatientInspections(this.currentState.id, queryString);
+        this.updateInspectionsList(inspections);
         this.updatePagination(pagination);
     }
 
-    updatePatientsList(patients) {
-        const patientsList = document.getElementById('patients-list');
-        patientsList.innerHTML = '';
+    updateInspectionsList(inspections) {
+        const inspectionList = document.getElementById('patients-list');
+        inspectionList.innerHTML = '';
 
-        patients.forEach((patient) => {
+        inspections.forEach((inspection) => {
             const patientElement = document.createElement('div');
             patientElement.innerHTML = `
             <div class="col">
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">${patient.name}</h5>
-                        <p class="card-text">Дата рождения: ${new Date(patient.birthday).toLocaleDateString()}</p>
-                        <p class="card-text">Пол: ${patient.gender === 'Male' ? 'Мужской' : 'Женский'}</p>
+                        <h5 class="card-title">${inspection.name}</h5>
+                        <p class="card-text">Дата рождения: ${new Date(inspection.birthday).toLocaleDateString()}</p>
+                        <p class="card-text">Пол: ${inspection.gender === 'Male' ? 'Мужской' : 'Женский'}</p>
                     </div>
                 </div>
             </div>
             `;
 
             patientElement.querySelector('.card').addEventListener('click', () => {
-                window.location.href = `/patient/${patient.id}`;
+                window.location.href = `/patient/${inspection.id}`;
             });
             
-            patientsList.appendChild(patientElement);
+            inspectionList.appendChild(patientElement);
         });
     }
 
@@ -292,7 +201,7 @@ export default class extends AbstractView {
                 e.preventDefault();
                 this.currentState.page = pageNum;
                 this.updateURL();
-                await this.loadPatients();
+                await this.loadInspections();
             });
             return pageLink;
         };
@@ -309,7 +218,7 @@ export default class extends AbstractView {
                 e.preventDefault();
                 this.currentState.page = currentPage - 1;
                 this.updateURL();
-                await this.loadPatients();
+                await this.loadInspections();
             });
             paginationContainer.appendChild(prevLink);
         }
@@ -352,7 +261,7 @@ export default class extends AbstractView {
                 e.preventDefault();
                 this.currentState.page = currentPage + 1;
                 this.updateURL();
-                await this.loadPatients();
+                await this.loadInspections();
             });
             paginationContainer.appendChild(nextLink);
         }
@@ -376,11 +285,7 @@ export default class extends AbstractView {
 function buildQueryString(params) {
     const queryParams = new URLSearchParams();
     
-    if (params.name != "") queryParams.append('name', params.name);
-    if (params.conclusions?.length) queryParams.append('conclusions', params.conclusions.join(','));
-    if (params.sorting) queryParams.append('sorting', params.sorting);
-    if (params.scheduledVisits) queryParams.append('scheduledVisits', params.scheduledVisits);
-    if (params.onlyMine) queryParams.append('onlyMine', params.onlyMine);
+    if (params.roots?.length) queryParams.append('icdRoots', params.roots.join(','));
     if (params.page) queryParams.append('page', params.page);
     if (params.size) queryParams.append('size', params.size);
     

@@ -146,6 +146,7 @@ export async function getPatients(queryParams) {
     return [data.patients, data.pagination];
 }
 
+
 export async function registerPatient(jsonData){
 
     const token = localStorage.getItem('token');
@@ -188,11 +189,11 @@ export async function getPatientById(id) {
     return await response.json();
 }
 
-export async function getPatientInspections(id) {
+export async function getPatientInspections(id, queryParams) {
     const token = localStorage.getItem('token');
     if (!token) return;
 
-    const response = await fetch(`${apiUrl}/patient/${id}/inspections`, {
+    const response = await fetch(`${apiUrl}/patient/${id}/inspections?${queryParams.toString()}`, {
         method: 'GET',
         headers: {
             'Authorization': 'Bearer ' + token
@@ -202,5 +203,6 @@ export async function getPatientInspections(id) {
     if (!response.ok) {
         throw new Error('Ошибка при получении осмотров пациента');
     }
-    return await response.json();
+    const data = await response.json();
+    return [data.inspections, data.pagination];
 }
