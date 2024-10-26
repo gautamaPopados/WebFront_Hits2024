@@ -146,7 +146,6 @@ export async function getPatients(queryParams) {
     return [data.patients, data.pagination];
 }
 
-
 export async function registerPatient(jsonData){
 
     const token = localStorage.getItem('token');
