@@ -78,7 +78,7 @@ export default class extends AbstractView {
                                 </div>
                             </div>
                             <div class="form-group col">
-                                <label for="sorting" class="form-label ">Сортировка пациентов</label>
+                                <label for="sorting" class="form-label text-muted">Сортировка пациентов</label>
                                 <select class="form-select" id="sorting">
                                     <option value="NameAsc" selected>По имени (А-Я)</option>
                                     <option value="NameDesc">По имени (Я-А)</option>

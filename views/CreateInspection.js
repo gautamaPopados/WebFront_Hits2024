@@ -39,8 +39,8 @@ export default class extends AbstractView {
                         </div>
                         <div class="row justify-content-between align-items-end mb-3">
                             <div class="col">
-                                <h4 id="patientName">
-                                </h4>   
+                                <h2 id="patientName">
+                                </h2>   
                             </div>
 
                             <div class="col">
