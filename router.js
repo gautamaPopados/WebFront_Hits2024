@@ -3,6 +3,7 @@ import Registration from './views/Registration.js';
 import Profile from './views/Profile.js';
 import Patients from './views/Patients.js';
 import PatientCard from './views/PatientCard.js';
+import CreateInspection from './views/CreateInspection.js';
 
 const router = async () => {
     const routes = [
@@ -10,14 +11,14 @@ const router = async () => {
         { path: "/registration", view: Registration },
         { path: "/profile", view: Profile },
         { path: "/patients", view: Patients },
-        { path: "/patient/:id", view: PatientCard }
+        { path: "/patient/:id", view: PatientCard },
+        { path: "/inspection/create", view: CreateInspection }
 
     ];
 
     const handleLocation = async () => {
         const path = window.location.pathname;
         
-        // Находим подходящий маршрут, учитывая возможность динамических параметров
         const potentialRoute = routes.find((route) => {
             if (route.path.includes(':id')) {
                 const routePathRegex = route.path.replace(':id', '([^/]+)');
@@ -27,7 +28,6 @@ const router = async () => {
         });
     
         if (potentialRoute) {
-            // Если это маршрут с параметром id, извлекаем его
             let params = {};
             if (potentialRoute.path.includes(':id')) {
                 const id = path.split('/').pop();

@@ -30,10 +30,12 @@ export default class extends AbstractView {
                             </div>
         
                             <div class="col-4">
-                                <div class=" d-flex flex-column mb-4 align-items-end">                            
-                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newPatientModal">
-                                        Добавить осмотр
-                                    </button>
+                                <div class=" d-flex flex-column mb-4 align-items-end"  > 
+                                    <a href="/inspection/create" >                           
+                                        <button type="button" class="btn btn-primary" id="addInspectionButton">
+                                            Добавить осмотр
+                                        </button>
+                                    </a>   
                                 </div>  
                             </div>
                         </div>
@@ -49,12 +51,12 @@ export default class extends AbstractView {
                         </div>
 
                         <div class="row mb-3 align-items-end">
-                            <div class="col">
+                            <div class="col-6">
                                 <label for="roots" class="form-label text-muted">МКБ-10</label>
-                                <select class="form-control selectpicker" multiple id="roots" data-live-search="true" data-size="5">
+                                <select class="form-control selectpicker" multiple id="roots" data-live-search="true" title="Не выбрано" size=10 style="width: 200px;">
                                 </select>
                             </div>
-                            <div class="col form-group">
+                            <div class="col-6 form-group">
                                 <div class="form-check">
                                     <input class="form-check-input" name="group" type="radio" id="groupByChainRadio" value=true>
                                     <label class="form-check-label" for="groupByChainRadio">
@@ -97,7 +99,11 @@ export default class extends AbstractView {
     async executeViewScript() {
         const form = document.getElementById('sortForm');
         const rootsSelect = document.getElementById('roots');
-
+        const addInspectionButton = document.getElementById('addInspectionButton');
+        addInspectionButton.addEventListener('click',  (e) => {
+            localStorage.setItem('currentPatientId', this.currentState.id);
+            localStorage.setItem('previousId', null);
+        })
         try {
             const patient = await getPatientById(this.currentState.id);
             const dob = new Date(patient.birthday);
@@ -210,7 +216,7 @@ export default class extends AbstractView {
                                 <h5 class="mb-1">Амбулаторный осмотр</h5>
                             </div>
                             <div>
-                                <a href="#" class="text-decoration-none" style = "display: ${chainItem.hasNested == true ? "none" : "inline-block"}">
+                                <a href="/inspection/create" class="append-button">
                                     <i class="bi bi-pencil-square"></i> Добавить осмотр
                                 </a>
                                 <a href="#" class="text-decoration-none">
@@ -226,6 +232,11 @@ export default class extends AbstractView {
                     row.innerHTML += chainElement.outerHTML;
                     container.innerHTML += row.outerHTML;
                     chainElements.push(container);
+                    const addInspectionButton = parentElement.querySelector('.append-button');
+                    addInspectionButton.addEventListener('click', (e) => {
+                        localStorage.setItem('currentPatientId', this.currentState.id);
+                        localStorage.setItem('previousId', chainItem.id);
+                    });
                 });
             }
     
@@ -239,7 +250,7 @@ export default class extends AbstractView {
                                 <h5 class="mb-1">Амбулаторный осмотр</h5>
                             </div>
                             <div>
-                                <a href="#" class="text-decoration-none" style = "display: ${inspection.hasNested == true ? "none" : "inline-block"}">
+                                <a href="/inspection/create"  class="text-decoration-none append-button-main" style = "display: ${inspection.hasNested == true ? "none" : "inline-block"}">
                                     <i class="bi bi-pencil-square"></i> Добавить осмотр
                                 </a>
                                 <a href="#" class="text-decoration-none">
@@ -259,6 +270,12 @@ export default class extends AbstractView {
             chainElements.forEach(chainElement => parentElement.append(chainElement));
             parentElement.innerHTML += `</div>`;
             inspectionList.appendChild(parentElement);
+            
+            const addInspectionButton = parentElement.querySelector('.append-button-main');
+            addInspectionButton.addEventListener('click', (e) => {
+                localStorage.setItem('currentPatientId', this.currentState.id)
+                localStorage.setItem('previousId', inspection.id)
+            });
 
             const toggleIcon = parentElement.querySelector('.toggle-icon');
             toggleIcon.addEventListener('click', (e) => {

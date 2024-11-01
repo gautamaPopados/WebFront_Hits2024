@@ -53,7 +53,7 @@ export default class extends AbstractView {
                             </div>
                             <div class="col">
                                 <label for="conclusions" class="form-label text-muted">Информация заключения</label>
-                                <select class="form-control selectpicker" multiple id="conclusions">
+                                <select class="form-control selectpicker" multiple id="conclusions" title="Не выбрано">
                                     <option value="Disease">Болезнь</option>
                                     <option value="Recovery">Восстановление</option>
                                     <option value="Death">Смерть</option>

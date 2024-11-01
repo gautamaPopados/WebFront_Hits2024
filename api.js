@@ -59,6 +59,11 @@ export async function getCurrentUser (token) {
         return data;
     } catch (error) {
         console.error('Ошибка:', error);
+        if (window.location.href != '/login') {
+            localStorage.removeItem('token'); 
+            window.location.href = '/login';
+        }
+        window.location.href = '/login';
         throw error; 
     }
 }
@@ -109,7 +114,7 @@ export async function updateUser (jsonData) {
 
 export async function loadSpecialties() {
 
-    const response = await fetch(apiUrl + '/dictionary/speciality');
+    const response = await fetch(apiUrl + '/dictionary/speciality?size=64');
     if (!response.ok) {
         throw new Error('Ошибка при загрузке специализаций');
     }
@@ -120,6 +125,16 @@ export async function loadSpecialties() {
 export async function getRootsICD() {
 
     const response = await fetch(apiUrl + '/dictionary/icd10/roots');
+    if (!response.ok) {
+        throw new Error('Ошибка при загрузке корневых кодов');
+    }
+    const data = await response.json();
+    return data;
+}
+
+export async function getDiagnosesICD() {
+
+    const response = await fetch(apiUrl + '/dictionary/icd10?page=1&size=128');
     if (!response.ok) {
         throw new Error('Ошибка при загрузке корневых кодов');
     }
@@ -211,6 +226,42 @@ export async function getInspectionChain(id) {
     if (!token) return;
 
     const response = await fetch(`${apiUrl}/inspection/${id}/chain`, {
+        method: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        }
+    });
+    
+    if (!response.ok) {
+        throw new Error('Ошибка при получении осмотров пациента');
+    }
+    const data = await response.json();
+    return data;
+}
+
+export async function getInspectionById(id) {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const response = await fetch(`${apiUrl}/inspection/${id}`, {
+        method: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        }
+    });
+    
+    if (!response.ok) {
+        throw new Error('Ошибка при получении осмотров пациента');
+    }
+    const data = await response.json();
+    return data;
+}
+
+export async function searchInspectionsWithoutChildren(id) {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const response = await fetch(`${apiUrl}/patient/${id}/inspections/search`, {
         method: 'GET',
         headers: {
             'Authorization': 'Bearer ' + token
