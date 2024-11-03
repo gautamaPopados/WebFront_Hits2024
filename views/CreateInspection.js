@@ -1,5 +1,5 @@
 import AbstractView from "./AbstractView.js";
-import { getRootsICD, getPatientById, getPatientInspections, loadSpecialties, getInspectionById, searchInspectionsWithoutChildren, getDiagnosesICD } from "../api.js";
+import { getRootsICD, getPatientById, getPatientInspections, loadSpecialties, getInspectionById, searchInspectionsWithoutChildren, getDiagnosesICD, postInspection } from "../api.js";
 
 export default class extends AbstractView {
     constructor() {
@@ -70,26 +70,27 @@ export default class extends AbstractView {
                         <div class="row p-3 mb-3" style="background-color: #f6f6fb;">
                             <div class="container">
                                 <h5 class="row text-primary">Консультации</h3>
+                                <div class="row mb-2 check-toggle" id="consultations"></div>
                                 <div class="row mb-2">
                                     <div class="d-flex form-check form-switch col-3 align-items-center">
-                                        <input class="form-check-input" type="checkbox" id="scheduledVisits">
-                                        <label class="form-check-label" for="scheduledVisits">
+                                        <input class="form-check-input" type="checkbox" id="consultationsCheck">
+                                        <label class="form-check-label" for="consultationsCheck">
                                             Требуется консультация
                                         </label>
                                     </div>
-                                    <div class="col-9">
+                                    <div class="col-9 check-toggle">
                                         <select class="form-control selectpicker" data-live-search=true data-size="10" id="specialization" title="Специализация консультанта">
                                         </select>
                                     </div>
                                 </div>
-                                <div class="row p-3">
+                                <div class="row p-3 check-toggle">
                                     <label style="color: #8a8aa7;" class="form-label" for="comment">Комментарий</label>
                                     <textarea class="form-control row" id="comment" rows="1"></textarea>
                                 </div>
 
-                                <div class="row">
+                                <div class="row check-toggle">
                                     <div class=" d-flex flex-column">                            
-                                    <button type="button" class="btn btn-primary w-50">
+                                    <button type="button" class="btn btn-primary w-50" id="addConsultButton">
                                         <i class="bi bi-plus"></i>
                                         Добавить консультацию
                                     </button>
@@ -182,12 +183,6 @@ export default class extends AbstractView {
                         </div>
                     </form>
                 </div>
-                <div id="patients-list" class="row row-cols-1 row-cols-md-1 row-cols-lg-1 row-cols-xl-2 g-4 mb-4">
-                    <!-- Список пациентов будет отображаться здесь -->
-                </div>
-                <div class="pagination-container d-flex justify-content-center">
-                    
-                </div>
             </div>
         `;
     }
@@ -197,8 +192,7 @@ export default class extends AbstractView {
         console.log(this.currentState);
         window.history.replaceState({}, "", "inspection/create");
 
-        var previousInspecions = null;
-        var lastInspectionDate = null;
+        var previousInspections = null;
         var diagnoses = [];
         var consultations = [];
         
@@ -208,32 +202,57 @@ export default class extends AbstractView {
         const conclusionsSelect = document.getElementById('conclusions');
         const previousInspectionsSelect = document.getElementById('previousInspectionsSelect');
         const inspectionTypeCheck = document.getElementById('inspectionType');
+        const consultationsCheck = document.getElementById('consultationsCheck');
         const nextDateContainer = document.getElementById('nextDateContainer');
         const previousInspectionDateContainer = document.getElementById('previousInspectionDateContainer');
         const nextDateLabel = document.getElementById('nextDateLabel');
         const submitMessage = document.getElementById('submitMessage');
         const diagnosesContainer = document.getElementById('diagnoses');
+        const consultationsContainer = document.getElementById('consultations');
         const addDiagnosisButton = document.getElementById('addDiagnosisButton');
+        const addConsultationButton = document.getElementById('addConsultButton');
         const diseaseTextarea = document.getElementById('disease');
+        const commentTextarea = document.getElementById('comment');
         submitMessage.style.color = 'red';
 
 
-        if(this.currentState.previousId != 'null') {
-            form.inspectionType.checked = true;
-            previousInspectionDateContainer.style.display = 'block';
+        if(consultationsCheck.checked) {
+            document.querySelectorAll('.check-toggle').forEach(element => {
+                element.style.display = 'block';
+            });
+        }
+        else {
+            consultations = [];
+            document.querySelectorAll('.check-toggle').forEach(element => {
+                element.style.display = 'none';
+            });
+        }
+        
+        try {
+            previousInspections = await searchInspectionsWithoutChildren(this.currentState.id);
+            previousInspections.forEach(inspection => {
+                const option = document.createElement('option');
+                option.value = inspection.id;
+                option.textContent = new Date(inspection.date).toLocaleString() + ' ' + inspection.diagnosis.code + ' - ' + inspection.diagnosis.name;
+                previousInspectionsSelect.appendChild(option);
+            });
+            
+        } catch (error) {
+            console.error('Ошибка загрузки осмотра:', error);
+        }
 
-            try {
-                previousInspecions = await searchInspectionsWithoutChildren(this.currentState.id);
-                previousInspecions.forEach(inspection => {
-                    const option = document.createElement('option');
-                    option.value = inspection.id;
-                    option.textContent = new Date(inspection.date).toLocaleString() + ' ' + inspection.diagnosis.code + ' - ' + inspection.diagnosis.name;
-                    previousInspectionsSelect.appendChild(option);
-                });
-                
-            } catch (error) {
-                console.error('Ошибка загрузки осмотра:', error);
-            }
+        if(this.currentState.previousId != 'null') {
+            const previousInspection = await getInspectionById(this.currentState.previousId);
+
+            form.inspectionType.checked = true;
+            const option = document.createElement('option');
+            option.value = this.currentState.previousId;
+            option.textContent = new Date(previousInspection.date).toLocaleString() + ' ' + previousInspection.diagnoses[0].code + ' - ' + previousInspection.diagnoses[0].name;
+            previousInspectionsSelect.appendChild(option);
+
+            $('#previousInspectionsSelect').selectpicker('val', this.currentState.previousId);
+            $('#previousInspectionsSelect').selectpicker('refresh');
+            previousInspectionDateContainer.style.display = 'block';
         } else {
             form.inspectionType.checked = false;
             previousInspectionDateContainer.style.display = 'none';
@@ -245,6 +264,21 @@ export default class extends AbstractView {
             }
             else {
                 previousInspectionDateContainer.style.display = 'none';
+            }
+
+        });
+
+        consultationsCheck.addEventListener('change', () => {
+            if(consultationsCheck.checked) {
+                document.querySelectorAll('.check-toggle').forEach(element => {
+                    element.style.display = 'block';
+                });
+            }
+            else {
+                consultations = [];
+                document.querySelectorAll('.check-toggle').forEach(element => {
+                    element.style.display = 'none';
+                });
             }
 
         });
@@ -262,12 +296,13 @@ export default class extends AbstractView {
                 nextDateContainer.style.display = 'none';
             }
         });        
+        
         try {
             const specialties = await loadSpecialties();
 
             specialties.forEach(specialty => {
                 const option = document.createElement('option');
-                option.value = specialty.id;
+                option.value = specialty.id + ' ' + specialty.name;
                 option.textContent = specialty.name;
                 specialtySelect.appendChild(option);
             });
@@ -284,7 +319,7 @@ export default class extends AbstractView {
                 const option = document.createElement('option');
                 option.setAttribute("data-tokens", root.code)
                 option.setAttribute("class", "icd-option")
-                option.value = root.code + ' ' +  root.name;
+                option.value = root.id + ' ' + root.code + ' ' +  root.name;
                 option.textContent = root.code + ' - ' + root.name;
                 diagnosesSelect.appendChild(option);
             });
@@ -307,41 +342,89 @@ export default class extends AbstractView {
 
         addDiagnosisButton.addEventListener('click', () => {
             const selectedDisease = diagnosesSelect.options[diagnosesSelect.selectedIndex].value;
-            console.log(selectedDisease);
             const diseaseText = diseaseTextarea.value.trim();
             const diagnosisType = $('input[name=inlineRadioOptions]:checked').val();
 
             if (selectedDisease && diseaseText) {
                 const diagnosisElement = document.createElement('div');
                 diagnosisElement.className = 'diagnosis-item mb-2';
-                diagnosisElement.textContent = `${selectedDisease.value}: ${diseaseText}`;
                 diagnosisElement.innerHTML = `
-                    <h6>(${selectedDisease}</h6>
+                    <h6>${selectedDisease.split(' ')[1]} ${selectedDisease.split(' ')[2]}</h6>
                     <p>Тип в осмотре: ${diagnosisType} <br> Расшифровка: ${diseaseText}</p>
                 `;
                 diagnosesContainer.appendChild(diagnosisElement);
+                const diagnosis = {
+                    icdDiagnosisId: selectedDisease.split(' ')[0], 
+                    description: diseaseText,
+                    type: diagnosisType
+                };
+                diagnoses.push(diagnosis);
 
                 diseaseTextarea.value = '';
                 diagnosesSelect.selectedIndex = -1;
                 $('.selectpicker').selectpicker('refresh');
-                $(this).find('input[type="radio"]').prop("disabled",false);
+                $('input[type="radio"]').prop("disabled", false);
+                
+                console.log('Диагноз добавлен', diagnosis);
+            } 
+        });
 
-            } else {
-                submitMessage.textContent = 'Пожалуйста, выберите болезнь и введите диагноз.';
-            }
+        addConsultationButton.addEventListener('click', () => {
+            const selectedSpecialty = specialtySelect.options[specialtySelect.selectedIndex].value;
+            const comment = commentTextarea.value.trim();
+
+            if (selectedSpecialty && comment) {
+                const consultElement = document.createElement('div');
+                consultElement.className = 'consult-item mb-2';
+                consultElement.textContent = `${selectedSpecialty.value}`;
+                consultElement.innerHTML = `
+                    <h6>${selectedSpecialty.split(' ')[1]}</h6>
+                    <p>Комментарий: ${comment}</p>
+                `;
+                consultationsContainer.appendChild(consultElement);
+                const consultation = {
+                    specialityId: selectedSpecialty.split(' ')[0], 
+                    comment: {
+                        content: comment
+                    }
+                };
+                consultations.push(consultation);
+                commentTextarea.value = '';
+                specialtySelect.selectedIndex = -1;
+                console.log('Консультация добавлена', consultation);
+            } 
+            $('.selectpicker').selectpicker('refresh');
+
         });
 
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             submitMessage.textContent ='';
-            // this.currentState = {
-            //     id: this.currentState.id,
-            //     page: 1, 
-            //     size: form.size.value,
-            //     grouped: $('input[name=group]:checked').val(),
-            //     roots: Array.from(form.roots.selectedOptions).map(opt => opt.value)
-            // };
+
+            const anamnesis = document.getElementById('anamnesis').value.trim();
+            const complaints = document.getElementById('complaints').value.trim();
+            const treatment = document.getElementById('treatment').value.trim();
+
+            if (!anamnesis) {
+                submitMessage.textContent = 'Анамнез не заполнен.';
+                return;
+            }
+        
+            if (!complaints) {
+                submitMessage.textContent = 'Жалобы не заполнены.';
+                return;
+            }
+        
+            if (!treatment) {
+                submitMessage.textContent = 'Рекомендации к лечению не заполнены.';
+                return;
+            }
+
+            if (diagnoses.length === 0) {
+                submitMessage.textContent = 'Нет Диагноза.';
+                return;
+            }
 
             const inspectionDate = new Date(form.inspectionDate.value);
             const today = new Date();
@@ -349,20 +432,56 @@ export default class extends AbstractView {
                 submitMessage.textContent = 'Дата осмотра не может быть в будущем.';
                 return;
             }
+            console.log(this.currentState.previousId);
+            if (form.inspectionType.checked == true) {
+                const lastInspectionId = $('#previousInspectionsSelect').val();
+                console.log('lastInspectionId: ' + lastInspectionId);
+                const lastInspection = await getInspectionById(lastInspectionId);
+                const lastInspectionDate =  new Date(lastInspection.date);
 
-            if (lastInspectionDate)
-            {
-                if (inspectionDate < lastInspectionDate) {
-                    submitMessage.textContent = 'Осмотр не может быть сделан ранее предыдущего осмотра.';
-                    return;
+                if (lastInspectionDate > inspectionDate) {
+                        submitMessage.textContent = 'Осмотр не может быть сделан ранее предыдущего осмотра.';
+                        return;
                 }
             }
 
-            const selectedSpecialties = Array.from(specialtySelect.selectedOptions).map(opt => opt.value);
-            if (new Set(selectedSpecialties).size !== selectedSpecialties.length) {
-                submitMessage.textContent = 'Консультации не могут иметь одинаковую специальность.';
+            const [existingInspections, paginatioon] = await getPatientInspections(this.currentState.id, '');
+            const hasDeathConclusion = existingInspections.some(inspection => inspection.conclusion === 'Death');
+            if (hasDeathConclusion) {
+                submitMessage.textContent = 'У пациента не может быть более одного осмотра с заключением "Смерть".';
                 return;
             }
+
+            const inspection = {
+                date: inspectionDate.toISOString(),
+                anamnesis: document.getElementById('anamnesis').value.trim(),
+                complaints: document.getElementById('complaints').value.trim(),
+                treatment: document.getElementById('treatment').value.trim(),
+                conclusion: conclusionsSelect.value,
+                nextVisitDate: conclusionsSelect.value !== 'Recovery' ? new Date(document.getElementById('nextDate').value).toISOString() : null,
+                deathDate: conclusionsSelect.value === 'Death' ? new Date(document.getElementById('nextDate').value).toISOString() : null,
+                previousInspectionId: form.inspectionType.checked ? $('#previousInspectionsSelect').val() : null,
+                diagnoses: diagnoses,
+                consultations: consultations
+            };
+            console.log('Inspection created:', inspection);
+            const jsonData = JSON.stringify(inspection);
+
+            try {
+                const result = await postInspection(jsonData, this.currentState.id);
+
+                if (result.status === 200) {
+                    submitMessage.textContent = "Success";
+                    submitMessage.style.color = 'green';
+                    window.location.href = "/patients";
+                }
+
+            } catch (error) {
+                console.error('Ошибка:', error);
+                submitMessage.textContent = "Произошла ошибка.";
+                submitMessage.style.color = 'red';
+            }
+
         });
 
     }
@@ -373,3 +492,10 @@ export default class extends AbstractView {
             : '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-gender-female" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 1a4 4 0 1 0 0 8 4 4 0 0 0 0-8M3 5a5 5 0 1 1 5.5 4.975V12h2a.5.5 0 0 1 0 1h-2v2.5a.5.5 0 0 1-1 0V13h-2a.5.5 0 0 1 0-1h2V9.975A5 5 0 0 1 3 5"/></svg>';
     }
 }    
+
+$(document).ready(function() {
+    setTimeout(function() {
+        $('#previousInspectionsSelect').selectpicker('val', '1');
+        $('#previousInspectionsSelect').selectpicker('refresh');
+    }, 500); 
+});

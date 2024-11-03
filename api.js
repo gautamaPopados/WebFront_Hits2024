@@ -242,7 +242,7 @@ export async function getInspectionChain(id) {
 export async function getInspectionById(id) {
     const token = localStorage.getItem('token');
     if (!token) return;
-
+    console.log(id);
     const response = await fetch(`${apiUrl}/inspection/${id}`, {
         method: 'GET',
         headers: {
@@ -273,4 +273,29 @@ export async function searchInspectionsWithoutChildren(id) {
     }
     const data = await response.json();
     return data;
+}
+
+export async function postInspection(jsonData, id){
+
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+        const response = await fetch(`${apiUrl}/patient/${id}/inspections`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: jsonData
+        });
+
+        const data = await response.json();
+
+        return { status: response.status, data: data };
+
+    } catch (error) {
+        console.error('Error in register API:', error);
+        throw error; 
+    }
 }

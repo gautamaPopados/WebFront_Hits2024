@@ -219,7 +219,7 @@ export default class extends AbstractView {
                                 <a href="/inspection/create" class="append-button">
                                     <i class="bi bi-pencil-square"></i> Добавить осмотр
                                 </a>
-                                <a href="#" class="text-decoration-none">
+                                <a href="/inspection/${chainItem.id}" class="text-decoration-none">
                                     <i class="bi bi-search"></i> Детали осмотра
                                 </a>
                             </div>
@@ -253,7 +253,7 @@ export default class extends AbstractView {
                                 <a href="/inspection/create"  class="text-decoration-none append-button-main" style = "display: ${inspection.hasNested == true ? "none" : "inline-block"}">
                                     <i class="bi bi-pencil-square"></i> Добавить осмотр
                                 </a>
-                                <a href="#" class="text-decoration-none">
+                                <a href="/inspection/${inspection.id}" class="text-decoration-none">
                                     <i class="bi bi-search"></i> Детали осмотра
                                 </a>
                             </div>
@@ -408,7 +408,3 @@ function buildQueryString(params) {
 }
 
 
-
-document.addEventListener("DOMContentLoaded", function() {
-        
-});

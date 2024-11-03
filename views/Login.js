@@ -61,7 +61,7 @@ export default class extends AbstractView {
                     localStorage.setItem('token', result.data.token);
                     await updateAuthButton(result.data.token);
                     console.log('Form submitted');
-                    window.location.href = "/profile";
+                    window.location.href = "/patients";
                 } else if (result.status === 400) {
                     loginMessage.textContent = "Неверный email или пароль";
                 }

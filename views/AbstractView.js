@@ -7,13 +7,13 @@ export default class{
 
     async getHtml()
     {
-        throw new Error("Method must be implemented.");
+        throw new Error("not implemented.");
     }
 
 
 
     async executeViewScript() 
     {
-        console.log("Executing view script...");
+        console.log("Executing view script");
     }
 }
