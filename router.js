@@ -13,8 +13,8 @@ const router = async () => {
         { path: "/profile", view: Profile },
         { path: "/patients", view: Patients },
         { path: "/patient/:id", view: PatientCard },
-        { path: "/inspection/:id", view: Inspection },
-        { path: "/inspection/create", view: CreateInspection }
+        { path: "/inspection/create", view: CreateInspection },
+        { path: "/inspection/:id", view: Inspection }
 
     ];
 

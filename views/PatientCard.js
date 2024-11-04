@@ -199,14 +199,13 @@ export default class extends AbstractView {
                     chain.style.width = "10px";
                     const chainElement = document.createElement('div');
                     chainElement.classList.add('col','card', 'p-3', 'shadow-sm', 'mt-3');
+                    
                     if (index < 3) {
                         margin =  `${(index+1) * 50}px`;
                         row.style.marginLeft = margin;
                     } else {
                         row.style.marginLeft = margin;
                     }
-
-                    
 
                     console.log(chainItem);
                     chainElement.innerHTML = `
