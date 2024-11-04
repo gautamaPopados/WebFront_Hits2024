@@ -257,6 +257,24 @@ export async function getInspectionById(id) {
     return data;
 }
 
+export async function getConsultationById(id) {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    console.log(id);
+    const response = await fetch(`${apiUrl}/consultation/${id}`, {
+        method: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        }
+    });
+    
+    if (!response.ok) {
+        throw new Error('Ошибка при получении осмотров пациента');
+    }
+    const data = await response.json();
+    return data;
+}
+
 export async function searchInspectionsWithoutChildren(id) {
     const token = localStorage.getItem('token');
     if (!token) return;
