@@ -5,6 +5,8 @@ import Patients from './views/Patients.js';
 import PatientCard from './views/PatientCard.js';
 import CreateInspection from './views/CreateInspection.js';
 import Inspection from './views/Inspection.js';
+import Consultations from './views/Consultations.js';
+import Reports from './views/Reports.js';
 
 const router = async () => {
     const routes = [
@@ -14,7 +16,9 @@ const router = async () => {
         { path: "/patients", view: Patients },
         { path: "/patient/:id", view: PatientCard },
         { path: "/inspection/create", view: CreateInspection },
-        { path: "/inspection/:id", view: Inspection }
+        { path: "/inspection/:id", view: Inspection },
+        { path: "/consultations", view: Consultations },
+        { path: "/reports", view: Reports },
 
     ];
 

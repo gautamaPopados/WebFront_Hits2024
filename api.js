@@ -221,6 +221,24 @@ export async function getPatientInspections(id, queryParams) {
     return [data.inspections, data.pagination];
 }
 
+export async function getInspections(queryParams) {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const response = await fetch(`${apiUrl}/consultation?${queryParams.toString()}`, {
+        method: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        }
+    });
+    
+    if (!response.ok) {
+        throw new Error('Ошибка при получении осмотров пациента');
+    }
+    const data = await response.json();
+    return [data.inspections, data.pagination];
+}
+
 export async function getInspectionChain(id) {
     const token = localStorage.getItem('token');
     if (!token) return;
