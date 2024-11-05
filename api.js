@@ -317,3 +317,74 @@ export async function postInspection(jsonData, id){
         throw error; 
     }
 }
+
+export async function editInspection(jsonData, id){
+
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+        const response = await fetch(`${apiUrl}/inspection/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: jsonData
+        });
+
+        return { status: response.status};
+
+    } catch (error) {
+        console.error('Error in register API:', error);
+        throw error; 
+    }
+}
+
+export async function postComment(jsonData, id){
+
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+        const response = await fetch(`${apiUrl}/consultation/${id}/comment`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: jsonData
+        });
+
+        const data = await response.json();
+
+        return { status: response.status, data: data };
+
+    } catch (error) {
+        console.error('Error in register API:', error);
+        throw error; 
+    }
+}
+
+export async function editComment(jsonData, id){
+
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+        const response = await fetch(`${apiUrl}/consultation/comment/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: jsonData
+        });
+
+        return { status: response.status};
+
+    } catch (error) {
+        console.error('Error in register API:', error);
+        throw error; 
+    }
+}
