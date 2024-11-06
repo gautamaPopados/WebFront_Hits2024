@@ -1,4 +1,4 @@
-import { getCurrentUser , updateUser  } from "../api.js"; // Импортируем необходимые функции
+import { getCurrentUser , updateUser  } from "../api.js"; 
 import AbstractView from "./AbstractView.js";
 import { validate } from "./Registration.js";
 

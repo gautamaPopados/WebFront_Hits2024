@@ -1,5 +1,5 @@
 import AbstractView from "./AbstractView.js";
-import { getInspectionChain, getPatientById, getInspections, getPatients, getRootsICD, registerPatient } from "../api.js";
+import { getInspectionChain, getInspections, getRootsICD } from "../api.js";
 
 export default class extends AbstractView {
     constructor(params) {
