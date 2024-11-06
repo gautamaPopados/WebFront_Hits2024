@@ -215,7 +215,7 @@ export default class extends AbstractView {
                                 <h5 class="mb-1">Амбулаторный осмотр</h5>
                             </div>
                             <div>
-                                <a href="/inspection/create" class="append-button">
+                                <a href="/inspection/create" class="append-button text-decoration-none">
                                     <i class="bi bi-pencil-square"></i> Добавить осмотр
                                 </a>
                                 <a href="/inspection/${chainItem.id}" class="text-decoration-none">
