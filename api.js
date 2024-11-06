@@ -406,3 +406,21 @@ export async function editComment(jsonData, id){
         throw error; 
     }
 }
+
+export async function getReport(queryParams) {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const response = await fetch(`${apiUrl}/report/icdrootsreport?${queryParams.toString()}`, {
+        method: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        }
+    });
+    
+    if (!response.ok) {
+        throw new Error('Ошибка при получении отчета');
+    }
+    const data = await response.json();
+    return [data.filters, data.records, data.summaryByRoot];
+}

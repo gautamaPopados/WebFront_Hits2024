@@ -18,8 +18,7 @@ const router = async () => {
         { path: "/inspection/create", view: CreateInspection },
         { path: "/inspection/:id", view: Inspection },
         { path: "/consultations", view: Consultations },
-        { path: "/reports", view: Reports },
-
+        { path: "/reports", view: Reports }
     ];
 
     const handleLocation = async () => {
