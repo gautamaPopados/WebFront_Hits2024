@@ -231,7 +231,8 @@ export default class extends AbstractView {
                     row.innerHTML += chainElement.outerHTML;
                     container.innerHTML += row.outerHTML;
                     chainElements.push(container);
-                    const addInspectionButton = parentElement.querySelector('.append-button');
+                    const addInspectionButton = container.querySelector('.append-button');
+                    console.log(addInspectionButton.innerHTML);
                     addInspectionButton.addEventListener('click', (e) => {
                         localStorage.setItem('currentPatientId', this.currentState.id);
                         localStorage.setItem('previousId', chainItem.id);
